@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador Mobile</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-secondary: #4b5563;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Abas / Tabs */
+        .tabs {
+            display: flex;
+            background: #e5e7eb;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Formulários e Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f9fafb;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Botões */
+        button.main-btn {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+            -webkit-tap-highlight-color: transparent; /* Remove flash no mobile */
+        }
+
+        button.main-btn:active {
+            background-color: var(--primary-hover);
+        }
+
+        /* Resultados */
+        .result-box {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f9fafb;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.95rem;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .winner {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #059669;
+            text-align: center;
+            padding: 10px;
+        }
+
+        small {
+            color: #9ca3af;
+            display: block;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎉 Sorteador Mobile</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('amigo')">Amigo Oculto</button>
+            <button class="tab-btn" onclick="switchTab('rifa')">Rifa</button>
+        </div>
+
+        <div id="amigo" class="tab-content active">
+            <div class="form-group">
+                <label for="nomes-amigo">Participantes (um por linha):</label>
+                <textarea id="nomes-amigo" placeholder="Ex&#10;Ana&#10;Bruno&#10;Carlos&#10;Diana"></textarea>
+            </div>
+            <button class="main-btn" onclick="sortearAmigo()">Realizar Sorteio</button>
+            
+            <div id="resultado-amigo" class="result-box" style="display: none;"></div>
+        </div>
+
+        <div id="rifa" class="tab-content">
+            <div class="form-group">
+                <label for="nomes-rifa">Nomes ou Bilhetes (um por linha):</label>
+                <textarea id="nomes-rifa" placeholder="Ex:&#10;Nº 01 - João&#10;Nº 02 - Maria&#10;Nº 03 - Pedro"></textarea>
+                <small>Dica: Você também pode colar apenas números se preferir.</small>
+            </div>
+            <div class="form-group">
+                <label for="qtd-premios">Quantidade de prêmios/ganhadores:</label>
+                <input type="number" id="qtd-premios" value="1" min="1">
+            </div>
+            <button class="main-btn" onclick="sortearRifa()">Sortear Ganhador(es)</button>
+            
+            <div id="resultado-rifa" class="result-box" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para alternar entre as abas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Função auxiliar para limpar e capturar a lista de linhas digitadas
+        function obterLista(idTextArea) {
+            const texto = document.getElementById(idTextArea).value;
+            return texto.split('\n')
+                        .map(nome => nome.trim())
+                        .filter(nome => nome !== "");
+        }
+
+        // Lógica do Amigo Oculto
+        function sortearAmigo() {
+            let participantes = obterLista('nomes-amigo');
+            const boxResultado = document.getElementById('resultado-amigo');
+            
+            if (participantes.length < 2) {
+                alert("Por favor, insira pelo menos 2 participantes.");
+                return;
+            }
+
+            // Algoritmo de embaralhamento (Fisher-Yates)
+            let embaralhado = [...participantes];
+            for (let i = embaralhado.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+            }
+
+            // Gera os pares onde o elemento i tira o i+1 (e o último tira o primeiro)
+            let htmlHTML = "<h3>Resultado do Sorteio:</h3>";
+            for (let i = 0; i < embaralhado.length; i++) {
+                let quemSorteou = embaralhado[i];
+                let quemFoiTirado = embaralhado[(i + 1) % embaralhado.length];
+                htmlHTML += `<div class="result-item"><strong>${quemSorteou}</strong> tirou: ${quemFoiTirado}</div>`;
+            }
+
+            boxResultado.innerHTML = htmlHTML;
+            boxResultado.style.display = "block";
+        }
+
+        // Lógica da Rifa
+        function sortearRifa() {
+            let bilhetes = obterLista('nomes-rifa');
+            let qtdPremios = parseInt(document.getElementById('qtd-premios').value) || 1;
+            const boxResultado = document.getElementById('resultado-rifa');
+
+            if (bilhetes.length === 0) {
+                alert("Por favor, insira os bilhetes ou nomes para a rifa.");
+                return;
+            }
+
+            if (qtdPremios > bilhetes.length) {
+                alert("A quantidade de prêmios não pode ser maior que o número de bilhetes participantes!");
+                return;
+            }
+
+            let listaCopia = [...bilhetes];
+            let ganhadores = [];
+
+            // Sorteia sem repetição
+            for (let i = 0; i < qtdPremios; i++) {
+                let indiceSorteado = Math.floor(Math.random() * listaCopia.length);
+                ganhadores.push(listaCopia[indiceSorteado]);
+                listaCopia.splice(indiceSorteado, 1); // Remove para não repetir
+            }
+
+            let htmlHTML = "<h3>🎉 Ganhador(es):</h3>";
+            ganhadores.forEach((ganhador, index) => {
+                htmlHTML += `<div class="winner">${qtdPremios > 1 ? (index + 1) + 'º - ' : ''}${ganhador}</div>`;
+            });
+
+            boxResultado.innerHTML = htmlHTML;
+            boxResultado.style.display = "block";
+        }
+    </script>
+</body>
+</html>
